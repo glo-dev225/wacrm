@@ -1,7 +1,29 @@
-import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+/**
+ * Why this file is `.mjs` and not `.ts`.
+ *
+ * Next.js transpiles a TypeScript `next.config.ts` with SWC before it
+ * can read it. On hosts whose glibc predates 2.29 (CloudLinux /
+ * RHEL 8-era images, which is what Hostinger's shared Node.js plans
+ * run) the native `@next/swc-linux-x64-gnu` binary refuses to load,
+ * reporting that GLIBC_2.29 is missing from libm.so.6.
+ *
+ * Next then falls back to `@next/swc-wasm-nodejs`, and that fallback
+ * emits a `next.config.compiled.js` importing a temp module it never
+ * writes — the build dies with ERR_MODULE_NOT_FOUND before a single
+ * route is compiled.
+ *
+ * A `.mjs` config is a plain ESM module: Node loads it directly and
+ * SWC never enters the picture. Per the Next.js docs, this file "will
+ * not be parsed by Webpack or Babel". Keep it plain JavaScript — do
+ * not rename it back to `.ts` unless the build host ships glibc 2.29+.
+ *
+ * Type safety is preserved via the JSDoc annotation on `nextConfig`
+ * below, so editors and `tsc` still check the shape.
+ */
 
 /**
  * Baseline security headers applied to every response.
@@ -61,9 +83,10 @@ const SECURITY_HEADERS = [
       "form-action 'self'",
     ].join("; "),
   },
-] as const;
+];
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Emit a self-contained server bundle (.next/standalone) so the
   // Docker image can run without node_modules or the Next CLI.
   // Harmless outside Docker: `next start` keeps working as before.

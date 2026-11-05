@@ -270,3 +270,37 @@ Ce plan sera testé en phase 1 (critère 10) et son résultat consigné.
 - La configuration de l'app Meta : callback, abonnements, numéros.
 - Le comportement de `after()` sur l'hébergement mutualisé quand un traitement dure plus de 10 s.
 - La disponibilité et le coût actuels de `gpt-4o-transcribe` en français ivoirien. Ce sera mesuré en phase 3, et aucun taux ne sera annoncé avant.
+
+---
+
+## 11. Décisions de Glorieux (5 novembre 2026)
+
+| # | Décision | Conséquences vérifiées |
+|---|---|---|
+| Q1 | **Instance séparée** (option B) | Nouveau projet Docker sur le VPS, nouveau projet Supabase, sous-domaine dédié. La production n'est pas touchée |
+| Q2 | Vérification de l'app Meta `1116099210844125` demandée | **En attente.** Le tableau de bord Meta demande une connexion et aucun navigateur connecté n'est disponible ici. L'API Graph est joignable depuis la session mais exige un jeton. Voir §12 |
+| Q3 | **OpenRouter** | L'amont gère nativement un fournisseur `openai_compatible` avec une `base_url` (migration `046`) : la clé OpenRouter se saisit dans Paramètres → Assistant IA, chiffrée. La transcription passera par `POST /api/v1/audio/transcriptions` d'OpenRouter, avec la même clé (`openai/whisper-1` ou `openai/gpt-4o-transcribe`, `language: fr`). Le format `ogg` est documenté ; l'Opus des vocaux WhatsApp n'est pas listé explicitement, à tester en phase 3 avant toute conclusion |
+| Q4 | **Interface en anglais** | Seuls les messages WhatsApp et `/demo/snem` sont en français |
+| Q5 | **Dépôt officiel à jour** | La branche repartira de `ArnasDon/wacrm@main`. Le correctif Hostinger n'est pas nécessaire : l'image Docker de l'amont tourne sur `node:22-alpine` (musl), donc sans le problème de glibc |
+| Q6 | Recommandations demandées | Voir ci-dessous |
+
+### Q6 : règles métier recommandées
+
+- **(a) Réassort.** « Comme la dernière fois » reprend **la vraie dernière commande du client**, sans règle spéciale pour la démo. Le scénario 2 se joue depuis un **deuxième téléphone de test**, rattaché à un deuxième client fictif qui porte la commande du 22 octobre (174 000 FCFA). Les scénarios sont ainsi indépendants et peuvent se jouer dans n'importe quel ordre.
+- **(b) Silence du bot.** Après `Confirmer`, le bot n'envoie plus que les messages liés à la commande (la validation). Au premier message libre, il répond « Je transmets à M. Koné » et se coupe (`ai_autoreply_disabled = true`). Seul le commercial peut le réactiver.
+- **(c) Jours fériés.** Ils sont ignorés. La date de livraison est toujours écrite en toutes lettres dans le récapitulatif (« lundi 9 novembre »), pour que le client et le commercial la voient et puissent la corriger.
+
+## 12. Vérification Meta : mode opératoire proposé
+
+Deux voies, sans qu'aucun secret ne passe par la conversation.
+
+1. **Lecture manuelle par Glorieux.** Ces informations ne sont pas secrètes :
+   - WhatsApp → Configuration : URL de callback et champs abonnés.
+   - API Setup : le numéro de test et son Phone Number ID, l'identifiant du WABA, la liste des numéros de l'app.
+   - Pour chaque numéro : est-ce lui que n8n utilise ?
+2. **Lecture automatique par l'API Graph.** Glorieux crée un jeton d'utilisateur système limité à `whatsapp_business_management` et le dépose dans les secrets de l'environnement cloud, sous le nom `META_AUDIT_TOKEN`, depuis une nouvelle session. Je n'exécuterai que des `GET` :
+   - `/<WABA_ID>/phone_numbers`
+   - `/<WABA_ID>/subscribed_apps`
+   - `/<PHONE_NUMBER_ID>?fields=webhook_configuration`
+
+   Le jeton est révoqué après l'audit. L'URL de callback par défaut de l'app n'est lisible qu'avec un jeton d'app, qui contient le secret de l'app. Je ne le demande pas : cette URL se lit dans le tableau de bord (voie 1).

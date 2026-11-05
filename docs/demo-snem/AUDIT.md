@@ -31,7 +31,7 @@
 | Next.js | 16.3.5. `AGENTS.md` signale des changements d'API par rapport aux versions connues. L'avertissement « middleware → proxy » apparaît au build | ✅ |
 | Langues de l'interface | `en`, `es`, `ko`, `pt`. **Pas de français.** `NEXT_PUBLIC_APP_LOCALE` n'est pas défini sur l'instance, donc l'interface est en anglais | ⚠️ |
 | Licence | `LICENSE` MIT (« Copyright (c) 2026 Arnas Donauskas ») présente, à conserver | ✅ |
-| Recherche de « SST » et « Secure Solutions » | Aucun résultat dans le dépôt | ✅ |
+| Recherche des termes interdits par le brief (section 10) | Aucun résultat dans le dépôt | ✅ |
 | Dépendances | Pas de `zod`. La validation des réponses du LLM se fera avec un validateur écrit à la main, sans nouvelle dépendance | ✅ |
 
 **Conséquence :** il faut décider si la démo part du fork tel quel ou de l'amont à jour, avec le correctif Hostinger réappliqué (question Q5).
